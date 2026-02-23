@@ -1,0 +1,4 @@
+D:/ArielNetworks/Predevelop/App/WinServiceController/ServiceMonitorCore/CMakeFiles/ServiceMonitorCore.dir
+D:/ArielNetworks/Predevelop/App/WinServiceController/ServiceMonitorCore/CMakeFiles/INSTALL.dir
+D:/ArielNetworks/Predevelop/App/WinServiceController/ServiceMonitorCore/CMakeFiles/ALL_BUILD.dir
+D:/ArielNetworks/Predevelop/App/WinServiceController/ServiceMonitorCore/CMakeFiles/ZERO_CHECK.dir

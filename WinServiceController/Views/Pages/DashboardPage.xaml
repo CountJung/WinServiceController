@@ -1,0 +1,101 @@
+﻿<Page
+  x:Class="WinServiceController.Views.Pages.DashboardPage"
+  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:local="clr-namespace:WinServiceController.Views.Pages"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+  Title="DashboardPage"
+  d:DataContext="{d:DesignInstance local:DashboardPage,
+                                     IsDesignTimeCreatable=False}"
+  d:DesignHeight="450"
+  d:DesignWidth="800"
+  ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+  ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+  Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+  mc:Ignorable="d"
+>
+  <Grid Margin="0,0,0,24">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal">
+      <TextBlock
+        FontSize="24"
+        FontWeight="SemiBold"
+        Text="Dashboard"
+      />
+      <ui:Button
+        Margin="16,0,0,0"
+        VerticalAlignment="Center"
+        Appearance="Transparent"
+        Command="{Binding ViewModel.RefreshAsyncCommand, Mode=OneWay}"
+        Icon="{ui:SymbolIcon ArrowSync24}"
+        ToolTip="Refresh"
+      />
+    </StackPanel>
+
+    <!-- Summary Cards -->
+    <UniformGrid Grid.Row="1" Margin="0,24,0,0" Columns="3">
+      <ui:CardControl Margin="0,0,8,0" Icon="{ui:SymbolIcon Apps24}">
+        <ui:CardControl.Header>
+          <StackPanel>
+            <TextBlock FontSize="13" Opacity="0.6" Text="Total Services" />
+            <TextBlock
+              FontSize="28"
+              FontWeight="Bold"
+              Text="{Binding ViewModel.TotalServices, Mode=OneWay}"
+            />
+          </StackPanel>
+        </ui:CardControl.Header>
+      </ui:CardControl>
+
+      <ui:CardControl Margin="4,0,4,0" Icon="{ui:SymbolIcon PlayCircle24}">
+        <ui:CardControl.Header>
+          <StackPanel>
+            <TextBlock FontSize="13" Opacity="0.6" Text="Running" />
+            <TextBlock
+              FontSize="28"
+              FontWeight="Bold"
+              Foreground="Green"
+              Text="{Binding ViewModel.RunningServices, Mode=OneWay}"
+            />
+          </StackPanel>
+        </ui:CardControl.Header>
+      </ui:CardControl>
+
+      <ui:CardControl Margin="8,0,0,0" Icon="{ui:SymbolIcon StopFilled20}">
+        <ui:CardControl.Header>
+          <StackPanel>
+            <TextBlock FontSize="13" Opacity="0.6" Text="Stopped" />
+            <TextBlock
+              FontSize="28"
+              FontWeight="Bold"
+              Foreground="OrangeRed"
+              Text="{Binding ViewModel.StoppedServices, Mode=OneWay}"
+            />
+          </StackPanel>
+        </ui:CardControl.Header>
+      </ui:CardControl>
+    </UniformGrid>
+
+    <!-- Engine Status -->
+    <ui:CardControl Grid.Row="2" Margin="0,16,0,0" Icon="{ui:SymbolIcon PlugConnected24}">
+      <ui:CardControl.Header>
+        <StackPanel>
+          <TextBlock FontSize="13" Opacity="0.6" Text="Monitoring Engine (C++ Service)" />
+          <TextBlock
+            FontSize="16"
+            FontWeight="SemiBold"
+            Text="{Binding ViewModel.EngineStatus, Mode=OneWay}"
+          />
+        </StackPanel>
+      </ui:CardControl.Header>
+    </ui:CardControl>
+  </Grid>
+</Page>

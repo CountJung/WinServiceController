@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\ArielNetworks\Predevelop\App\WinServiceController\ServiceMonitorCore\build\CMakeFiles\4171c5631e43d5815bb8ea784de6a43b\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{8791BCCB-83BA-3E72-8E99-8EBED4A85320}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="MinSizeRel" />
+    <BuildType Name="Release" />
+    <BuildType Name="RelWithDebInfo" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/솔루션 항목/">
+    <File Path="ProjectInstructions.md" />
+  </Folder>
+  <Project Path="ServiceMonitorCore/ServiceMonitorCore.vcxproj" Id="94851221-d160-3487-93cf-66338959a7fb" />
+  <Project Path="WinServiceController/WinServiceController.csproj">
+    <BuildType Solution="MinSizeRel|*" Project="Release" />
+    <BuildType Solution="RelWithDebInfo|*" Project="Debug" />
+  </Project>
+</Solution>
