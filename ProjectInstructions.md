@@ -394,12 +394,14 @@ WinServiceController/               (Solution root)
 │   │   └── Pages/
 │   │       ├── DashboardPage.xaml   (Service overview cards)
 │   │       ├── ServiceListPage.xaml (Service list + controls)
+│   │       ├── ChartPage.xaml       (LiveCharts2 CPU/Memory trends)
 │   │       └── SettingsPage.xaml    (Theme: System/Light/Dark)
 │   ├── ViewModels/
 │   │   ├── Windows/MainWindowViewModel.cs
 │   │   └── Pages/
 │   │       ├── DashboardViewModel.cs
 │   │       ├── ServiceListViewModel.cs
+│   │       ├── ChartViewModel.cs
 │   │       └── SettingsViewModel.cs
 │   ├── Models/
 │   │   ├── ServiceInfo.cs           (ObservableObject)
@@ -444,8 +446,20 @@ WinServiceController/               (Solution root)
 - [x] Connect WPF IPC client to live service (message-mode pipe)
 - [x] Add real-time polling in Dashboard (DispatcherTimer, 3s)
 - [x] ServiceListPage queries C++ engine for per-service CPU/Memory
-- [ ] LiveCharts2 integration for CPU/Memory trend graphs
+- [x] LiveCharts2 integration — ChartPage with CPU/Memory trend graphs (code-behind CartesianChart)
+- [x] Fix: `StopFilled20` → `Stop20` (invalid SymbolRegular runtime crash)
 - [ ] Service install/uninstall commands from UI
 - [ ] Auto-restart on crash configuration
 - [ ] Error/notification snackbar in UI
 - [ ] Performance testing & hardening
+
+## 15.5 Maintenance Notes
+
+### WPF UI SymbolRegular validation
+Always verify icon names exist in `Wpf.Ui.Controls.SymbolRegular` before using `{ui:SymbolIcon ...}` in XAML.
+Use the SymbolCheck helper: `dotnet run` in `$TEMP/SymbolCheck/` to enumerate valid symbols.
+
+### LiveCharts2 XAML compiler workaround
+The prerelease `LiveChartsCore.SkiaSharpView.WPF 2.0.0-rc6.1` causes `MC1000` assembly resolution errors
+when `<lvc:CartesianChart>` is used directly in XAML. Workaround: create `CartesianChart` controls in
+code-behind (`ChartPage.xaml.cs`) and host them in `<Border x:Name="...">` containers.

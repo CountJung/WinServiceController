@@ -22,6 +22,12 @@ namespace WinServiceController.ViewModels.Windows
                 Content = "Services",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Server24 },
                 TargetPageType = typeof(Views.Pages.ServiceListPage)
+            },
+            new NavigationViewItem()
+            {
+                Content = "Charts",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.ChartMultiple24 },
+                TargetPageType = typeof(Views.Pages.ChartPage)
             }
         ];
 

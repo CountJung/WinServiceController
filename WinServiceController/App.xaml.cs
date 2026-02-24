@@ -60,6 +60,8 @@ namespace WinServiceController
                 services.AddSingleton<DashboardViewModel>();
                 services.AddSingleton<ServiceListPage>();
                 services.AddSingleton<ServiceListViewModel>();
+                services.AddSingleton<ChartPage>();
+                services.AddSingleton<ChartViewModel>();
                 services.AddSingleton<SettingsPage>();
                 services.AddSingleton<SettingsViewModel>();
             }).Build();

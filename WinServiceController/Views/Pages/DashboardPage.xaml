@@ -69,7 +69,7 @@
         </ui:CardControl.Header>
       </ui:CardControl>
 
-      <ui:CardControl Margin="8,0,0,0" Icon="{ui:SymbolIcon StopFilled20}">
+      <ui:CardControl Margin="8,0,0,0" Icon="{ui:SymbolIcon Stop20}">
         <ui:CardControl.Header>
           <StackPanel>
             <TextBlock FontSize="13" Opacity="0.6" Text="Stopped" />
