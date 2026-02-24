@@ -1,7 +1,7 @@
 using LiveChartsCore.SkiaSharpView.WPF;
-using System.Windows.Data;
 using WinServiceController.ViewModels.Pages;
 using Wpf.Ui.Abstractions.Controls;
+using Binding = System.Windows.Data.Binding;
 
 namespace WinServiceController.Views.Pages
 {

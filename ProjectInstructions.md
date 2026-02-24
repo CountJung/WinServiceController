@@ -448,9 +448,18 @@ WinServiceController/               (Solution root)
 - [x] ServiceListPage queries C++ engine for per-service CPU/Memory
 - [x] LiveCharts2 integration — ChartPage with CPU/Memory trend graphs (code-behind CartesianChart)
 - [x] Fix: `StopFilled20` → `Stop20` (invalid SymbolRegular runtime crash)
-- [ ] Service install/uninstall commands from UI
-- [ ] Auto-restart on crash configuration
-- [ ] Error/notification snackbar in UI
+- [x] Service install/uninstall from Dashboard (sc.exe via Process)
+- [x] Dashboard engine control panel (Install/Uninstall/Start/Stop buttons with state-aware enable/disable)
+- [x] Chart X-axis: default 2-hour window (7200s), slides after overflow
+- [x] System tray integration (minimize to tray, balloon notification, "don't show again")
+- [x] Settings page: theme, tray behavior, suppress notification, auto-start with Windows, engine exe path browse
+- [x] UserSettings persistence (settings.json)
+- [x] README.md (bilingual EN/KR)
+- [x] WinForms namespace disambiguation (Application, MenuItem, Binding aliases)
+- [x] Auto-restart on crash — `sc failure` sets restart/5s on 1st/2nd/3rd failure
+- [x] Error/notification snackbar — ISnackbarService in Dashboard + ServiceList commands
+- [x] Fix: CommunityToolkit.Mvvm 8.4 strips `Async` suffix → corrected all XAML command bindings
+- [x] Fix: wpfui-icon.ico `CopyToOutputDirectory=PreserveNewest` (NotifyIcon FileNotFoundException)
 - [ ] Performance testing & hardening
 
 ## 15.5 Maintenance Notes
@@ -463,3 +472,20 @@ Use the SymbolCheck helper: `dotnet run` in `$TEMP/SymbolCheck/` to enumerate va
 The prerelease `LiveChartsCore.SkiaSharpView.WPF 2.0.0-rc6.1` causes `MC1000` assembly resolution errors
 when `<lvc:CartesianChart>` is used directly in XAML. Workaround: create `CartesianChart` controls in
 code-behind (`ChartPage.xaml.cs`) and host them in `<Border x:Name="...">` containers.
+
+### WinForms namespace disambiguation
+`UseWindowsForms=true` (required for `NotifyIcon` tray support) adds `System.Windows.Forms` to global scope,
+causing ambiguity with WPF types. Use explicit aliases in affected files:
+- `using Application = System.Windows.Application;`
+- `using MenuItem = Wpf.Ui.Controls.MenuItem;`
+- `using Binding = System.Windows.Data.Binding;`
+
+### README.md synchronization
+README.md must be kept in sync with ProjectInstructions.md. Both English and Korean sections must be updated together.
+
+### CommunityToolkit.Mvvm 8.x command naming
+`[RelayCommand]` on `async Task FooAsync()` generates `FooCommand` (strips `Async` suffix).
+XAML bindings must use `FooCommand`, NOT `FooAsyncCommand`.
+
+### Content files for runtime (NotifyIcon etc.)
+Files loaded at runtime from `AppContext.BaseDirectory` must have `CopyToOutputDirectory="PreserveNewest"` in the csproj.

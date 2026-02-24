@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Wpf.Ui.Controls;
+using MenuItem = Wpf.Ui.Controls.MenuItem;
 
 namespace WinServiceController.ViewModels.Windows
 {

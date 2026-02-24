@@ -48,8 +48,14 @@ namespace WinServiceController
                 // Navigation
                 services.AddSingleton<INavigationService, NavigationService>();
 
+                // Snackbar
+                services.AddSingleton<ISnackbarService, SnackbarService>();
+
                 // IPC Client
                 services.AddSingleton<IPipeClientService, PipeClientService>();
+
+                // User Settings
+                services.AddSingleton<IUserSettingsService, UserSettingsService>();
 
                 // Main window
                 services.AddSingleton<INavigationWindow, MainWindow>();

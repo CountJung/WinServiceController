@@ -13,13 +13,15 @@ namespace WinServiceController.ViewModels.Pages
 {
     public partial class ChartViewModel : ObservableObject, INavigationAware
     {
-        private const int MaxDataPoints = 300;
+        private const int DefaultWindowSeconds = 7200; // 2 hours
+        private const int MaxDataPoints = 7200;
 
         private readonly IPipeClientService _pipeClient;
         private readonly ObservableCollection<ObservableValue> _cpuValues = [];
         private readonly ObservableCollection<ObservableValue> _memoryValues = [];
         private DispatcherTimer? _pollTimer;
         private bool _isInitialized;
+        private int _dataPointCount;
 
         [ObservableProperty]
         private string _targetServiceName = "Spooler";
@@ -45,7 +47,14 @@ namespace WinServiceController.ViewModels.Pages
         [ObservableProperty]
         private Axis[] _sharedXAxes =
         [
-            new Axis { Name = "Time", LabelsRotation = 0, ShowSeparatorLines = false }
+            new Axis
+            {
+                Name = "Time (s)",
+                MinLimit = 0,
+                MaxLimit = DefaultWindowSeconds,
+                LabelsRotation = 0,
+                ShowSeparatorLines = false
+            }
         ];
 
         [ObservableProperty]
@@ -128,6 +137,9 @@ namespace WinServiceController.ViewModels.Pages
         {
             _cpuValues.Clear();
             _memoryValues.Clear();
+            _dataPointCount = 0;
+            SharedXAxes[0].MinLimit = 0;
+            SharedXAxes[0].MaxLimit = DefaultWindowSeconds;
             LastCpu = "—";
             LastMemory = "—";
         }
@@ -175,6 +187,14 @@ namespace WinServiceController.ViewModels.Pages
                 _cpuValues.RemoveAt(0);
             while (_memoryValues.Count > MaxDataPoints)
                 _memoryValues.RemoveAt(0);
+
+            // Slide X axis window after 2 hours
+            _dataPointCount++;
+            if (_dataPointCount > DefaultWindowSeconds)
+            {
+                SharedXAxes[0].MinLimit = _dataPointCount - DefaultWindowSeconds;
+                SharedXAxes[0].MaxLimit = _dataPointCount;
+            }
         }
     }
 }
