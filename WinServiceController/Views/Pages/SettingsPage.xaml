@@ -93,6 +93,45 @@
         />
       </Grid>
 
+      <!-- Chart Settings -->
+      <TextBlock Margin="0,24,0,0" FontSize="20" FontWeight="Medium" Text="Chart" />
+
+      <TextBlock Margin="0,12,0,0" FontSize="12" Opacity="0.6" Text="X-axis time window (seconds)" />
+      <ui:TextBox
+        Margin="0,4,0,0"
+        MaxWidth="200"
+        HorizontalAlignment="Left"
+        PlaceholderText="7200"
+        Text="{Binding ViewModel.ChartWindowSeconds, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+      />
+
+      <TextBlock Margin="0,12,0,0" FontSize="12" Opacity="0.6" Text="CPU Y-axis max (%)" />
+      <ui:TextBox
+        Margin="0,4,0,0"
+        MaxWidth="200"
+        HorizontalAlignment="Left"
+        PlaceholderText="100"
+        Text="{Binding ViewModel.ChartCpuYMax, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+      />
+
+      <TextBlock Margin="0,12,0,0" FontSize="12" Opacity="0.6" Text="Memory Y-axis max (MB, 0 = auto)" />
+      <ui:TextBox
+        Margin="0,4,0,0"
+        MaxWidth="200"
+        HorizontalAlignment="Left"
+        PlaceholderText="0"
+        Text="{Binding ViewModel.ChartMemoryYMax, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+      />
+
+      <TextBlock Margin="0,12,0,0" FontSize="12" Opacity="0.6" Text="Y-axis top margin (%)" />
+      <ui:TextBox
+        Margin="0,4,0,0"
+        MaxWidth="200"
+        HorizontalAlignment="Left"
+        PlaceholderText="10"
+        Text="{Binding ViewModel.ChartYMarginPercent, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+      />
+
       <!-- About -->
       <TextBlock Margin="0,24,0,0" FontSize="20" FontWeight="Medium" Text="About Service Monitor" />
       <TextBlock Margin="0,12,0,0" Text="{Binding ViewModel.AppVersion, Mode=OneWay}" />

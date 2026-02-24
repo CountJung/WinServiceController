@@ -10,7 +10,7 @@ namespace WinServiceController.Services
     {
         private const string PipeName = "ServiceMonitorPipe";
         private const int ConnectTimeoutMs = 3000;
-        private const int BufferSize = 4096;
+        private const int BufferSize = 65536;
 
         private NamedPipeClientStream? _pipeStream;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
@@ -68,13 +68,20 @@ namespace WinServiceController.Services
                 await _pipeStream!.WriteAsync(requestBytes, cancellationToken);
                 await _pipeStream.FlushAsync(cancellationToken);
 
+                // Read full message (may span multiple reads in message mode)
+                using var ms = new System.IO.MemoryStream();
                 var buffer = new byte[BufferSize];
-                var bytesRead = await _pipeStream.ReadAsync(buffer, cancellationToken);
+                do
+                {
+                    var bytesRead = await _pipeStream.ReadAsync(buffer, cancellationToken);
+                    if (bytesRead == 0) break;
+                    ms.Write(buffer, 0, bytesRead);
+                } while (!_pipeStream.IsMessageComplete);
 
-                if (bytesRead == 0)
+                if (ms.Length == 0)
                     return null;
 
-                var responseJson = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                var responseJson = Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
                 return JsonSerializer.Deserialize<IpcResponse>(responseJson);
             }
             catch (Exception ex)

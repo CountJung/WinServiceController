@@ -33,8 +33,8 @@ ServiceMetrics ResourceCollector::Collect(DWORD processId)
     // RAII handle wrapper
     auto closer = std::unique_ptr<void, decltype(&::CloseHandle)>(hProcess, ::CloseHandle);
 
-    // CPU usage
-    metrics.cpuPercent = CalculateCpuUsage(hProcess);
+    // CPU usage (per-process state tracking)
+    metrics.cpuPercent = CalculateCpuUsage(hProcess, processId);
 
     // Memory usage
     PROCESS_MEMORY_COUNTERS_EX pmc{};
@@ -61,7 +61,7 @@ ServiceMetrics ResourceCollector::Collect(DWORD processId)
     return metrics;
 }
 
-double ResourceCollector::CalculateCpuUsage(HANDLE hProcess)
+double ResourceCollector::CalculateCpuUsage(HANDLE hProcess, DWORD processId)
 {
     FILETIME nowFt{}, creationFt{}, exitFt{}, kernelFt{}, userFt{};
     ::GetSystemTimeAsFileTime(&nowFt);
@@ -77,25 +77,31 @@ double ResourceCollector::CalculateCpuUsage(HANDLE hProcess)
     user.LowPart = userFt.dwLowDateTime;
     user.HighPart = userFt.dwHighDateTime;
 
-    if (lastCpu_.QuadPart == 0) {
-        lastCpu_ = now;
-        lastSysCpu_ = kernel;
-        lastUserCpu_ = user;
+    auto& state = cpuStates_[processId];
+
+    if (state.lastTime.QuadPart == 0) {
+        state.lastTime = now;
+        state.lastKernel = kernel;
+        state.lastUser = user;
         return 0.0;
     }
 
-    auto timeDelta = now.QuadPart - lastCpu_.QuadPart;
+    auto timeDelta = now.QuadPart - state.lastTime.QuadPart;
     if (timeDelta == 0)
         return 0.0;
 
-    auto cpuDelta = (kernel.QuadPart - lastSysCpu_.QuadPart) +
-                    (user.QuadPart - lastUserCpu_.QuadPart);
+    auto cpuDelta = (kernel.QuadPart - state.lastKernel.QuadPart) +
+                    (user.QuadPart - state.lastUser.QuadPart);
 
     double percent = (static_cast<double>(cpuDelta) / static_cast<double>(timeDelta)) * 100.0 / numProcessors_;
 
-    lastCpu_ = now;
-    lastSysCpu_ = kernel;
-    lastUserCpu_ = user;
+    // Clamp to [0, 100] — shared svchost processes can occasionally overshoot due to timing
+    if (percent < 0.0) percent = 0.0;
+    if (percent > 100.0) percent = 100.0;
+
+    state.lastTime = now;
+    state.lastKernel = kernel;
+    state.lastUser = user;
 
     return percent;
 }

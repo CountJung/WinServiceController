@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdint>
+#include <unordered_map>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -40,11 +41,15 @@ public:
     static std::wstring GetServiceExecutablePath(const std::wstring& serviceName);
 
 private:
-    double CalculateCpuUsage(HANDLE hProcess);
+    struct CpuState {
+        ULARGE_INTEGER lastTime{};
+        ULARGE_INTEGER lastKernel{};
+        ULARGE_INTEGER lastUser{};
+    };
 
-    ULARGE_INTEGER lastCpu_{};
-    ULARGE_INTEGER lastSysCpu_{};
-    ULARGE_INTEGER lastUserCpu_{};
+    double CalculateCpuUsage(HANDLE hProcess, DWORD processId);
+
+    std::unordered_map<DWORD, CpuState> cpuStates_;
     int numProcessors_ = 1;
 };
 

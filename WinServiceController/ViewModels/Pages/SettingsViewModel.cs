@@ -33,6 +33,18 @@ namespace WinServiceController.ViewModels.Pages
         [ObservableProperty]
         private string _cppServiceExePath = string.Empty;
 
+        [ObservableProperty]
+        private int _chartWindowSeconds = 7200;
+
+        [ObservableProperty]
+        private int _chartCpuYMax = 100;
+
+        [ObservableProperty]
+        private int _chartMemoryYMax;
+
+        [ObservableProperty]
+        private int _chartYMarginPercent = 10;
+
         public SettingsViewModel(IUserSettingsService settingsService)
         {
             _settingsService = settingsService;
@@ -58,6 +70,10 @@ namespace WinServiceController.ViewModels.Pages
             SuppressTrayNotification = s.SuppressTrayNotification;
             StartWithWindows = s.StartWithWindows;
             CppServiceExePath = s.CppServiceExePath;
+            ChartWindowSeconds = s.ChartWindowSeconds;
+            ChartCpuYMax = s.ChartCpuYMax;
+            ChartMemoryYMax = s.ChartMemoryYMax;
+            ChartYMarginPercent = s.ChartYMarginPercent;
 
             _isInitialized = true;
         }
@@ -90,6 +106,30 @@ namespace WinServiceController.ViewModels.Pages
         partial void OnCppServiceExePathChanged(string value)
         {
             _settingsService.Settings.CppServiceExePath = value;
+            _settingsService.Save();
+        }
+
+        partial void OnChartWindowSecondsChanged(int value)
+        {
+            _settingsService.Settings.ChartWindowSeconds = value;
+            _settingsService.Save();
+        }
+
+        partial void OnChartCpuYMaxChanged(int value)
+        {
+            _settingsService.Settings.ChartCpuYMax = value;
+            _settingsService.Save();
+        }
+
+        partial void OnChartMemoryYMaxChanged(int value)
+        {
+            _settingsService.Settings.ChartMemoryYMax = value;
+            _settingsService.Save();
+        }
+
+        partial void OnChartYMarginPercentChanged(int value)
+        {
+            _settingsService.Settings.ChartYMarginPercent = value;
             _settingsService.Save();
         }
 

@@ -5,8 +5,8 @@ A modern Windows Service monitoring application combining a **C++20 backend serv
 ## Features
 
 - **Real-time Service Monitoring** — CPU, Memory, Uptime per service via a lightweight C++ engine
-- **Service Lifecycle Control** — Start, Stop, Restart, Install, Uninstall services directly from the UI
-- **Live Charts** — CPU and Memory trend graphs powered by LiveCharts2 (2-hour sliding window)
+- **Service Lifecycle Control** — Start, Stop, Restart, Delete, Install, Uninstall services from the UI
+- **Integrated Live Charts** — CPU and Memory trend graphs inline with service list (2-hour sliding window)
 - **Fluent Modern UI** — WPF UI 4.x with Light/Dark/System theme support
 - **Named Pipe IPC** — Async duplex JSON messaging between UI and monitoring engine
 - **System Tray Integration** — Minimize to tray on close with configurable notifications
@@ -51,8 +51,7 @@ WinServiceController/
 ├── WinServiceController/             .NET 10 WPF project
 │   ├── Views/Pages/
 │   │   ├── DashboardPage.xaml        Service summary + engine control
-│   │   ├── ServiceListPage.xaml      Service list with search & controls
-│   │   ├── ChartPage.xaml            CPU/Memory trend charts
+│   │   ├── ServiceListPage.xaml      Service list + controls + CPU/Memory charts
 │   │   └── SettingsPage.xaml         Theme, tray, startup, engine path
 │   ├── ViewModels/Pages/             MVVM ViewModels
 │   ├── Models/                       ServiceInfo, IpcMessage, UserSettings
@@ -139,7 +138,7 @@ All settings are persisted in `settings.json` next to the executable:
 
 ## License
 
-Private project — all rights reserved.
+MIT License.
 
 ---
 
@@ -150,8 +149,8 @@ C++20 백엔드 서비스와 WPF Fluent UI 프론트엔드를 결합한 윈도�
 ## 주요 기능
 
 - **실시간 서비스 모니터링** — 경량 C++ 엔진을 통한 서비스별 CPU, 메모리, 가동 시간 감시
-- **서비스 생명주기 제어** — UI에서 직접 시작, 중지, 재시작, 설치, 제거
-- **실시간 차트** — LiveCharts2 기반 CPU/메모리 트렌드 그래프 (기본 2시간 슬라이딩 윈도우)
+- **서비스 생명주기 제어** — UI에서 직접 시작, 중지, 재시작, 삭제, 설치, 제거
+- **통합 실시간 차트** — 서비스 목록과 동일 페이지에서 CPU/메모리 트렌드 표시 (2시간 슬라이딩 윈도우)
 - **Fluent 모던 UI** — WPF UI 4.x, 라이트/다크/시스템 테마 지원
 - **Named Pipe IPC** — UI와 모니터링 엔진 간 비동기 양방향 JSON 메시징
 - **시스템 트레이 통합** — 닫기 시 트레이로 최소화, 알림 설정 가능
@@ -256,4 +255,4 @@ Named Pipe (`\\.\pipe\ServiceMonitorPipe`)를 통한 JSON 메시지 모드.
 
 ## 라이선스
 
-비공개 프로젝트 — 모든 권리 보유.
+MIT License.

@@ -9,6 +9,9 @@ namespace WinServiceController.Models
 
         [JsonPropertyName("targetService")]
         public string TargetService { get; set; } = string.Empty;
+
+        [JsonPropertyName("intervalMs")]
+        public int IntervalMs { get; set; }
     }
 
     public class IpcResponse
@@ -27,5 +30,20 @@ namespace WinServiceController.Models
 
         [JsonPropertyName("error")]
         public string? Error { get; set; }
+
+        [JsonPropertyName("services")]
+        public List<ServiceSnapshot>? Services { get; set; }
+    }
+
+    public class ServiceSnapshot
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("cpu")]
+        public double Cpu { get; set; }
+
+        [JsonPropertyName("memoryMB")]
+        public double MemoryMB { get; set; }
     }
 }

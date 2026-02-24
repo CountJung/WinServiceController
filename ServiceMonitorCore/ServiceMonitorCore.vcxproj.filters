@@ -27,5 +27,28 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{D9EFF0A7-FD48-3496-8424-3E9554B81868}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HeaderFiles">
+      <UniqueIdentifier>{115c0b94-3f35-433c-b904-7c20f6db44be}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\JsonProtocol.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Logger.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MonitorService.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PipeServer.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ResourceCollector.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ServiceBase.h">
+      <Filter>HeaderFiles</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

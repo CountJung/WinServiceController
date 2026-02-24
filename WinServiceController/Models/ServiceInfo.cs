@@ -25,6 +25,9 @@ namespace WinServiceController.Models
         [ObservableProperty]
         private string _executablePath = string.Empty;
 
+        [ObservableProperty]
+        private bool _showInChart;
+
         public string StatusText => Status switch
         {
             ServiceControllerStatus.Running => "Running",

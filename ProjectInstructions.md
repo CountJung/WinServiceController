@@ -390,29 +390,30 @@ WinServiceController/               (Solution root)
 ├── ProjectInstructions.md
 ├── WinServiceController/            (.NET 10 WPF project)
 │   ├── Views/
-│   │   ├── Windows/MainWindow.xaml  (FluentWindow + NavigationView)
+│   │   ├── Windows/MainWindow.xaml  (FluentWindow + NavigationView + Tray)
 │   │   └── Pages/
-│   │       ├── DashboardPage.xaml   (Service overview cards)
-│   │       ├── ServiceListPage.xaml (Service list + controls)
-│   │       ├── ChartPage.xaml       (LiveCharts2 CPU/Memory trends)
-│   │       └── SettingsPage.xaml    (Theme: System/Light/Dark)
+│   │       ├── DashboardPage.xaml   (Service overview + engine control)
+│   │       ├── ServiceListPage.xaml (Service list + controls + CPU/Memory charts)
+│   │       └── SettingsPage.xaml    (Theme, tray, startup, engine path)
 │   ├── ViewModels/
 │   │   ├── Windows/MainWindowViewModel.cs
 │   │   └── Pages/
 │   │       ├── DashboardViewModel.cs
-│   │       ├── ServiceListViewModel.cs
-│   │       ├── ChartViewModel.cs
+│   │       ├── ServiceListViewModel.cs  (includes chart logic)
 │   │       └── SettingsViewModel.cs
 │   ├── Models/
 │   │   ├── ServiceInfo.cs           (ObservableObject)
 │   │   ├── IpcMessage.cs            (IpcRequest/IpcResponse DTOs)
-│   │   └── AppConfig.cs             (PipeName, MonitoringIntervalMs)
+│   │   ├── AppConfig.cs             (PipeName, MonitoringIntervalMs)
+│   │   └── UserSettings.cs          (Theme, tray, startup settings)
 │   ├── Services/
 │   │   ├── IPipeClientService.cs    (IPC client interface)
 │   │   ├── PipeClientService.cs     (NamedPipeClientStream implementation)
+│   │   ├── UserSettingsService.cs   (settings.json persistence)
 │   │   └── ApplicationHostService.cs
 │   └── Helpers/
-│       └── EnumToBooleanConverter.cs
+│       ├── EnumToBooleanConverter.cs
+│       └── InverseBoolConverter.cs
 └── ServiceMonitorCore/              (C++20 CMake project)
     ├── CMakeLists.txt
     ├── CMakePresets.json
@@ -460,6 +461,21 @@ WinServiceController/               (Solution root)
 - [x] Error/notification snackbar — ISnackbarService in Dashboard + ServiceList commands
 - [x] Fix: CommunityToolkit.Mvvm 8.4 strips `Async` suffix → corrected all XAML command bindings
 - [x] Fix: wpfui-icon.ico `CopyToOutputDirectory=PreserveNewest` (NotifyIcon FileNotFoundException)
+- [x] Merged ChartPage into ServiceListPage — unified view with list + CPU/Memory charts side-by-side
+- [x] Service delete command with confirmation dialog (irreversible action warning)
+- [x] Selected service drives chart monitoring target automatically
+- [x] Removed standalone ChartPage/ChartViewModel (code consolidated into ServiceListPage)
+- [x] Window size increased to 1400×900
+- [x] Layout fix: header/search/buttons pinned at top, service list scrolls independently
+- [x] Multi-service chart: all running services plotted simultaneously with color-coded legend
+- [x] Auto-polling: chart timer starts automatically on page navigate (no manual Monitor button)
+- [x] C++ background monitoring loop: collects metrics for all running services every 1s
+- [x] C++ history ring buffer: stores up to 2hr of data per service (GET_ALL_STATUS, GET_HISTORY IPC)
+- [x] Chart axis settings: X window (seconds), CPU Y max, Memory Y max, Y margin % — configurable in Settings
+- [x] Pipe client: increased buffer to 64KB, loop-read for large message-mode payloads
+- [x] Fix: CPU > 100% — ResourceCollector single-state bug; now per-PID state map + clamp [0,100]
+- [x] Fix: svchost PID dedup — CollectAllMetrics collects once per PID, distributes to sharing services
+- [x] Chart filter: ShowInChart checkbox column; top-10 by resource auto-selected; user toggleable
 - [ ] Performance testing & hardening
 
 ## 15.5 Maintenance Notes

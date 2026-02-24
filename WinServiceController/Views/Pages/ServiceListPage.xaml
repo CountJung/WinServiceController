@@ -9,18 +9,26 @@
     Title="ServiceListPage"
     d:DataContext="{d:DesignInstance local:ServiceListPage,
                                      IsDesignTimeCreatable=False}"
-    d:DesignHeight="600"
-    d:DesignWidth="900"
+    d:DesignHeight="800"
+    d:DesignWidth="1200"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
+            <!--  Row 0: Header (pinned)  -->
             <RowDefinition Height="Auto" />
+            <!--  Row 1: Search (pinned)  -->
             <RowDefinition Height="Auto" />
+            <!--  Row 2: Buttons (pinned)  -->
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <!--  Row 3: Service list (scrollable, takes remaining space)  -->
+            <RowDefinition Height="400" MinHeight="180" />
+            <!--  Row 4: Chart header (pinned)  -->
+            <RowDefinition Height="Auto" />
+            <!--  Row 5: Charts (fixed bottom)  -->
+            <RowDefinition Height="3*" MinHeight="200" />
         </Grid.RowDefinitions>
 
         <!--  Header  -->
@@ -31,7 +39,7 @@
             Text="Services" />
 
         <!--  Search + Refresh  -->
-        <Grid Grid.Row="1" Margin="0,16,0,8">
+        <Grid Grid.Row="1" Margin="0,12,0,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -52,7 +60,7 @@
         <!--  Control Buttons  -->
         <StackPanel
             Grid.Row="2"
-            Margin="0,12,0,0"
+            Margin="0,2,0,6"
             HorizontalAlignment="Left"
             Orientation="Horizontal">
             <ui:Button
@@ -68,21 +76,39 @@
                 Content="Stop"
                 Icon="{ui:SymbolIcon Stop24}" />
             <ui:Button
+                Margin="0,0,8,0"
                 Appearance="Caution"
                 Command="{Binding ViewModel.RestartServiceCommand, Mode=OneWay}"
                 Content="Restart"
                 Icon="{ui:SymbolIcon ArrowSync24}" />
+            <ui:Button
+                Margin="16,0,0,0"
+                Appearance="Danger"
+                Command="{Binding ViewModel.RequestDeleteServiceCommand, Mode=OneWay}"
+                Content="Delete"
+                Icon="{ui:SymbolIcon Delete24}"
+                ToolTip="Permanently remove this service" />
         </StackPanel>
 
-        <!--  Service List  -->
+        <!--  Service List (independently scrollable)  -->
         <ui:ListView
             Grid.Row="3"
             ItemsSource="{Binding ViewModel.Services, Mode=OneWay}"
+            ScrollViewer.VerticalScrollBarVisibility="Auto"
             SelectedItem="{Binding ViewModel.SelectedService, Mode=TwoWay}">
             <ui:ListView.View>
                 <GridView>
+                    <GridViewColumn Width="50" Header="Chart">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding ShowInChart, Mode=TwoWay}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn
-                        Width="200"
+                        Width="220"
                         DisplayMemberBinding="{Binding DisplayName}"
                         Header="Display Name" />
                     <GridViewColumn
@@ -90,7 +116,7 @@
                         DisplayMemberBinding="{Binding ServiceName}"
                         Header="Service Name" />
                     <GridViewColumn
-                        Width="100"
+                        Width="90"
                         DisplayMemberBinding="{Binding StatusText}"
                         Header="Status" />
                     <GridViewColumn
@@ -105,5 +131,81 @@
             </ui:ListView.View>
         </ui:ListView>
 
+        <!--  Chart Header  -->
+        <Grid Grid.Row="4" Margin="0,8,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Text="{Binding ViewModel.ChartTitle, Mode=OneWay}" />
+
+            <ui:Button
+                Grid.Column="1"
+                Margin="12,0,0,0"
+                Appearance="Transparent"
+                Command="{Binding ViewModel.ClearChartCommand, Mode=OneWay}"
+                Icon="{ui:SymbolIcon Delete24}"
+                ToolTip="Clear chart data" />
+        </Grid>
+
+        <!--  Charts: CPU (left) + Memory (right)  -->
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border x:Name="CpuChartHost" Grid.Column="0" Margin="0,0,4,0" />
+            <Border x:Name="MemoryChartHost" Grid.Column="1" Margin="4,0,0,0" />
+        </Grid>
+
+        <!--  Delete Confirmation Overlay  -->
+        <Grid
+            Grid.Row="0"
+            Grid.RowSpan="7"
+            Visibility="{Binding ViewModel.IsDeleteDialogOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Border Background="#80000000" />
+            <Border
+                Padding="32"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{DynamicResource ApplicationBackgroundBrush}"
+                CornerRadius="8">
+                <StackPanel MaxWidth="400">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="Delete Service?" />
+                    <TextBlock
+                        Margin="0,12,0,0"
+                        TextWrapping="Wrap">
+                        <Run Text="This will permanently remove" />
+                        <Run FontWeight="Bold" Text="{Binding ViewModel.SelectedService.DisplayName, Mode=OneWay}" />
+                        <Run Text="from the system. This action cannot be undone." />
+                    </TextBlock>
+                    <StackPanel
+                        Margin="0,24,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <ui:Button
+                            Margin="0,0,8,0"
+                            Command="{Binding ViewModel.CancelDeleteServiceCommand, Mode=OneWay}"
+                            Content="Cancel" />
+                        <ui:Button
+                            Appearance="Danger"
+                            Command="{Binding ViewModel.ConfirmDeleteServiceCommand, Mode=OneWay}"
+                            Content="Delete"
+                            Icon="{ui:SymbolIcon Delete24}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Page>
