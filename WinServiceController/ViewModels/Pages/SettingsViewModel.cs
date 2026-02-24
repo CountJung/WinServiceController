@@ -62,7 +62,6 @@ namespace WinServiceController.ViewModels.Pages
 
         private void InitializeViewModel()
         {
-            CurrentTheme = ApplicationThemeManager.GetAppTheme();
             AppVersion = $"Service Monitor - {GetAssemblyVersion()}";
 
             var s = _settingsService.Settings;
@@ -74,6 +73,13 @@ namespace WinServiceController.ViewModels.Pages
             ChartCpuYMax = s.ChartCpuYMax;
             ChartMemoryYMax = s.ChartMemoryYMax;
             ChartYMarginPercent = s.ChartYMarginPercent;
+
+            CurrentTheme = s.Theme switch
+            {
+                "Dark" => ApplicationTheme.Dark,
+                "Light" => ApplicationTheme.Light,
+                _ => ApplicationTheme.Unknown
+            };
 
             _isInitialized = true;
         }

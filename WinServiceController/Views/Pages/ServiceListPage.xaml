@@ -15,19 +15,33 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <Style x:Key="FilterPopupBorder" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect
+                        BlurRadius="8"
+                        Opacity="0.25"
+                        ShadowDepth="2" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
-            <!--  Row 0: Header (pinned)  -->
             <RowDefinition Height="Auto" />
-            <!--  Row 1: Search (pinned)  -->
             <RowDefinition Height="Auto" />
-            <!--  Row 2: Buttons (pinned)  -->
             <RowDefinition Height="Auto" />
-            <!--  Row 3: Service list (scrollable, takes remaining space)  -->
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="400" MinHeight="180" />
-            <!--  Row 4: Chart header (pinned)  -->
             <RowDefinition Height="Auto" />
-            <!--  Row 5: Charts (fixed bottom)  -->
             <RowDefinition Height="3*" MinHeight="200" />
         </Grid.RowDefinitions>
 
@@ -57,82 +71,241 @@
                 ToolTip="Refresh" />
         </Grid>
 
-        <!--  Control Buttons  -->
+        <!--  Control Buttons + Filter Toolbar  -->
+        <Grid Grid.Row="2" Margin="0,2,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                Orientation="Horizontal">
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Appearance="Success"
+                    Command="{Binding ViewModel.StartServiceCommand, Mode=OneWay}"
+                    Content="Start"
+                    Icon="{ui:SymbolIcon Play24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Appearance="Primary"
+                    Command="{Binding ViewModel.StopServiceCommand, Mode=OneWay}"
+                    Content="Stop"
+                    Icon="{ui:SymbolIcon Stop24}" />
+                <ui:Button
+                    Margin="0,0,8,0"
+                    Appearance="Caution"
+                    Command="{Binding ViewModel.RestartServiceCommand, Mode=OneWay}"
+                    Content="Restart"
+                    Icon="{ui:SymbolIcon ArrowSync24}" />
+                <ui:Button
+                    Margin="32,0,0,0"
+                    Appearance="Danger"
+                    Command="{Binding ViewModel.RequestDeleteServiceCommand, Mode=OneWay}"
+                    Content="Delete"
+                    Icon="{ui:SymbolIcon Delete24}"
+                    ToolTip="Permanently remove this service" />
+            </StackPanel>
+
+            <!--  Filter buttons (right-aligned)  -->
+            <StackPanel
+                Grid.Column="2"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,6,0"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="Filters:" />
+                <ui:Button
+                    x:Name="StatusFilterBtn"
+                    Margin="0,0,4,0"
+                    Appearance="Secondary"
+                    Click="OnStatusFilterClick"
+                    Content="Status"
+                    FontSize="12"
+                    Icon="{ui:SymbolIcon Filter24}" />
+                <ui:Button
+                    x:Name="CpuFilterBtn"
+                    Margin="0,0,4,0"
+                    Appearance="Secondary"
+                    Click="OnCpuFilterClick"
+                    Content="CPU"
+                    FontSize="12"
+                    Icon="{ui:SymbolIcon Filter24}" />
+                <ui:Button
+                    x:Name="MemFilterBtn"
+                    Appearance="Secondary"
+                    Click="OnMemFilterClick"
+                    Content="Memory"
+                    FontSize="12"
+                    Icon="{ui:SymbolIcon Filter24}" />
+            </StackPanel>
+        </Grid>
+
+        <!--  Active filter summary  -->
         <StackPanel
-            Grid.Row="2"
-            Margin="0,2,0,6"
-            HorizontalAlignment="Left"
-            Orientation="Horizontal">
-            <ui:Button
-                Margin="0,0,8,0"
-                Appearance="Success"
-                Command="{Binding ViewModel.StartServiceCommand, Mode=OneWay}"
-                Content="Start"
-                Icon="{ui:SymbolIcon Play24}" />
-            <ui:Button
-                Margin="0,0,8,0"
-                Appearance="Danger"
-                Command="{Binding ViewModel.StopServiceCommand, Mode=OneWay}"
-                Content="Stop"
-                Icon="{ui:SymbolIcon Stop24}" />
-            <ui:Button
-                Margin="0,0,8,0"
-                Appearance="Caution"
-                Command="{Binding ViewModel.RestartServiceCommand, Mode=OneWay}"
-                Content="Restart"
-                Icon="{ui:SymbolIcon ArrowSync24}" />
-            <ui:Button
-                Margin="16,0,0,0"
-                Appearance="Danger"
-                Command="{Binding ViewModel.RequestDeleteServiceCommand, Mode=OneWay}"
-                Content="Delete"
-                Icon="{ui:SymbolIcon Delete24}"
-                ToolTip="Permanently remove this service" />
+            Grid.Row="3"
+            Margin="0,0,0,2"
+            Orientation="Horizontal"
+            Visibility="{Binding ViewModel.HasActiveFilter, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock
+                VerticalAlignment="Center"
+                FontSize="11"
+                Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                Text="{Binding ViewModel.ActiveFilterSummary, Mode=OneWay}" />
         </StackPanel>
 
-        <!--  Service List (independently scrollable)  -->
+        <!--  Service List  -->
         <ui:ListView
-            Grid.Row="3"
-            ItemsSource="{Binding ViewModel.Services, Mode=OneWay}"
+            x:Name="ServiceListView"
+            Grid.Row="4"
+            ItemsSource="{Binding ViewModel.ServicesView, Mode=OneWay}"
             ScrollViewer.VerticalScrollBarVisibility="Auto"
             SelectedItem="{Binding ViewModel.SelectedService, Mode=TwoWay}">
             <ui:ListView.View>
                 <GridView>
-                    <GridViewColumn Width="50" Header="Chart">
+                    <GridViewColumn Width="70" Header="{Binding ViewModel.HeaderChart}">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox
-                                    HorizontalAlignment="Center"
-                                    IsChecked="{Binding ShowInChart, Mode=TwoWay}" />
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding ShowInChart, Mode=TwoWay}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn
                         Width="220"
                         DisplayMemberBinding="{Binding DisplayName}"
-                        Header="Display Name" />
+                        Header="{Binding ViewModel.HeaderDisplayName}" />
                     <GridViewColumn
                         Width="160"
                         DisplayMemberBinding="{Binding ServiceName}"
-                        Header="Service Name" />
+                        Header="{Binding ViewModel.HeaderServiceName}" />
                     <GridViewColumn
-                        Width="90"
+                        Width="120"
                         DisplayMemberBinding="{Binding StatusText}"
-                        Header="Status" />
+                        Header="{Binding ViewModel.HeaderStatus}" />
                     <GridViewColumn
-                        Width="80"
+                        Width="110"
                         DisplayMemberBinding="{Binding CpuUsage, StringFormat='{}{0:F1}'}"
-                        Header="CPU (%)" />
+                        Header="{Binding ViewModel.HeaderCpu}" />
                     <GridViewColumn
-                        Width="100"
+                        Width="130"
                         DisplayMemberBinding="{Binding MemoryMB, StringFormat='{}{0:F1}'}"
-                        Header="Memory (MB)" />
+                        Header="{Binding ViewModel.HeaderMemory}" />
                 </GridView>
             </ui:ListView.View>
         </ui:ListView>
 
+        <!--  Filter Popups  -->
+        <Popup
+            x:Name="StatusFilterPopup"
+            AllowsTransparency="True"
+            IsOpen="{Binding ViewModel.IsStatusFilterOpen, Mode=TwoWay}"
+            Placement="Bottom"
+            StaysOpen="False">
+            <Border Style="{StaticResource FilterPopupBorder}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,6"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="Filter by Status" />
+                    <CheckBox
+                        Content="Running"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        IsChecked="{Binding ViewModel.FilterRunning, Mode=TwoWay}" />
+                    <CheckBox
+                        Margin="0,4,0,0"
+                        Content="Stopped"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        IsChecked="{Binding ViewModel.FilterStopped, Mode=TwoWay}" />
+                    <CheckBox
+                        Margin="0,4,0,0"
+                        Content="Other"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        IsChecked="{Binding ViewModel.FilterOther, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup
+            x:Name="CpuFilterPopup"
+            AllowsTransparency="True"
+            IsOpen="{Binding ViewModel.IsCpuFilterOpen, Mode=TwoWay}"
+            Placement="Bottom"
+            StaysOpen="False">
+            <Border Style="{StaticResource FilterPopupBorder}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,6"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="Filter by CPU (%)" />
+                    <CheckBox
+                        Content="Enable filter"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        IsChecked="{Binding ViewModel.CpuFilterEnabled, Mode=TwoWay}" />
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <ComboBox
+                            Width="55"
+                            Margin="0,0,6,0"
+                            ItemsSource="{Binding ViewModel.FilterOperators}"
+                            SelectedItem="{Binding ViewModel.CpuFilterOp, Mode=TwoWay}" />
+                        <TextBox
+                            Width="60"
+                            Text="{Binding ViewModel.CpuFilterValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Text="%" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+        <Popup
+            x:Name="MemFilterPopup"
+            AllowsTransparency="True"
+            IsOpen="{Binding ViewModel.IsMemFilterOpen, Mode=TwoWay}"
+            Placement="Bottom"
+            StaysOpen="False">
+            <Border Style="{StaticResource FilterPopupBorder}">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,6"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        Text="Filter by Memory (MB)" />
+                    <CheckBox
+                        Content="Enable filter"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        IsChecked="{Binding ViewModel.MemFilterEnabled, Mode=TwoWay}" />
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <ComboBox
+                            Width="55"
+                            Margin="0,0,6,0"
+                            ItemsSource="{Binding ViewModel.FilterOperators}"
+                            SelectedItem="{Binding ViewModel.MemFilterOp, Mode=TwoWay}" />
+                        <TextBox
+                            Width="60"
+                            Text="{Binding ViewModel.MemFilterValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+                        <TextBlock
+                            Margin="4,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Text="MB" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Popup>
+
         <!--  Chart Header  -->
-        <Grid Grid.Row="4" Margin="0,8,0,4">
+        <Grid Grid.Row="5" Margin="0,8,0,4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -156,20 +329,26 @@
         </Grid>
 
         <!--  Charts: CPU (left) + Memory (right)  -->
-        <Grid Grid.Row="5">
+        <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="CpuChartHost" Grid.Column="0" Margin="0,0,4,0" />
-            <Border x:Name="MemoryChartHost" Grid.Column="1" Margin="4,0,0,0" />
+            <Border
+                x:Name="CpuChartHost"
+                Grid.Column="0"
+                Margin="0,0,4,0" />
+            <Border
+                x:Name="MemoryChartHost"
+                Grid.Column="1"
+                Margin="4,0,0,0" />
         </Grid>
 
         <!--  Delete Confirmation Overlay  -->
         <Grid
             Grid.Row="0"
-            Grid.RowSpan="7"
+            Grid.RowSpan="8"
             Visibility="{Binding ViewModel.IsDeleteDialogOpen, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border Background="#80000000" />
             <Border
@@ -183,9 +362,7 @@
                         FontSize="18"
                         FontWeight="SemiBold"
                         Text="Delete Service?" />
-                    <TextBlock
-                        Margin="0,12,0,0"
-                        TextWrapping="Wrap">
+                    <TextBlock Margin="0,12,0,0" TextWrapping="Wrap">
                         <Run Text="This will permanently remove" />
                         <Run FontWeight="Bold" Text="{Binding ViewModel.SelectedService.DisplayName, Mode=OneWay}" />
                         <Run Text="from the system. This action cannot be undone." />

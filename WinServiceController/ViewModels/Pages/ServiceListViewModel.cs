@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.ServiceProcess;
+using System.Windows.Data;
 using System.Windows.Threading;
 using LiveChartsCore;
 using LiveChartsCore.Defaults;
@@ -16,6 +17,8 @@ using Wpf.Ui.Controls;
 
 namespace WinServiceController.ViewModels.Pages
 {
+    public enum SortDirection { None, Ascending, Descending }
+
     public partial class ServiceListViewModel : ObservableObject, INavigationAware
     {
         private const int TopNDefault = 10;
@@ -53,6 +56,76 @@ namespace WinServiceController.ViewModels.Pages
         [ObservableProperty]
         private string _searchText = string.Empty;
 
+        // --- Sorting state ---
+
+        private string _sortColumn = string.Empty;
+        private SortDirection _sortDir = SortDirection.None;
+
+        // --- Column header texts (include sort arrows + filter indicators) ---
+
+        [ObservableProperty]
+        private string _headerChart = "Chart";
+
+        [ObservableProperty]
+        private string _headerDisplayName = "Display Name";
+
+        [ObservableProperty]
+        private string _headerServiceName = "Service Name";
+
+        [ObservableProperty]
+        private string _headerStatus = "Status";
+
+        [ObservableProperty]
+        private string _headerCpu = "CPU (%)";
+
+        [ObservableProperty]
+        private string _headerMemory = "Memory (MB)";
+
+        // --- Status Filter ---
+
+        [ObservableProperty]
+        private bool _filterRunning = true;
+
+        [ObservableProperty]
+        private bool _filterStopped = true;
+
+        [ObservableProperty]
+        private bool _filterOther = true;
+
+        [ObservableProperty]
+        private bool _isStatusFilterOpen;
+
+        // --- CPU Filter ---
+
+        [ObservableProperty]
+        private bool _cpuFilterEnabled;
+
+        [ObservableProperty]
+        private string _cpuFilterOp = ">=";
+
+        [ObservableProperty]
+        private double _cpuFilterValue;
+
+        [ObservableProperty]
+        private bool _isCpuFilterOpen;
+
+        // --- Memory Filter ---
+
+        [ObservableProperty]
+        private bool _memFilterEnabled;
+
+        [ObservableProperty]
+        private string _memFilterOp = ">=";
+
+        [ObservableProperty]
+        private double _memFilterValue;
+
+        [ObservableProperty]
+        private bool _isMemFilterOpen;
+
+        // Filter operator options
+        public string[] FilterOperators { get; } = [">=", "<="];
+
         // --- Chart ---
 
         [ObservableProperty]
@@ -87,6 +160,16 @@ namespace WinServiceController.ViewModels.Pages
         [ObservableProperty]
         private bool _isDeleteDialogOpen;
 
+        // --- CollectionView ---
+
+        private ICollectionView? _servicesView;
+
+        public ICollectionView? ServicesView
+        {
+            get => _servicesView;
+            private set => SetProperty(ref _servicesView, value);
+        }
+
         public ServiceListViewModel(
             IPipeClientService pipeClient,
             ISnackbarService snackbarService,
@@ -97,6 +180,148 @@ namespace WinServiceController.ViewModels.Pages
             _settingsService = settingsService;
 
             ApplyChartSettings();
+            RebuildCollectionView();
+        }
+
+        private void RebuildCollectionView()
+        {
+            var view = CollectionViewSource.GetDefaultView(Services);
+            view.Filter = ApplyFilter;
+            ServicesView = view;
+        }
+
+        private bool ApplyFilter(object obj)
+        {
+            if (obj is not ServiceInfo svc) return false;
+
+            // Status filter
+            var statusOk = svc.Status switch
+            {
+                ServiceControllerStatus.Running => FilterRunning,
+                ServiceControllerStatus.Stopped => FilterStopped,
+                _ => FilterOther
+            };
+            if (!statusOk) return false;
+
+            // CPU filter
+            if (CpuFilterEnabled)
+            {
+                if (CpuFilterOp == ">=" && svc.CpuUsage < CpuFilterValue) return false;
+                if (CpuFilterOp == "<=" && svc.CpuUsage > CpuFilterValue) return false;
+            }
+
+            // Memory filter
+            if (MemFilterEnabled)
+            {
+                if (MemFilterOp == ">=" && svc.MemoryMB < MemFilterValue) return false;
+                if (MemFilterOp == "<=" && svc.MemoryMB > MemFilterValue) return false;
+            }
+
+            return true;
+        }
+
+        private void RefreshFilter()
+        {
+            ServicesView?.Refresh();
+            UpdateFilterSummary();
+        }
+
+        // --- Active filter summary ---
+
+        [ObservableProperty]
+        private bool _hasActiveFilter;
+
+        [ObservableProperty]
+        private string _activeFilterSummary = string.Empty;
+
+        private void UpdateFilterSummary()
+        {
+            var parts = new List<string>();
+
+            if (!FilterRunning || !FilterStopped || !FilterOther)
+            {
+                var shown = new List<string>();
+                if (FilterRunning) shown.Add("Running");
+                if (FilterStopped) shown.Add("Stopped");
+                if (FilterOther) shown.Add("Other");
+                parts.Add($"Status: {(shown.Count > 0 ? string.Join(", ", shown) : "None")}");
+            }
+
+            if (CpuFilterEnabled)
+                parts.Add($"CPU {CpuFilterOp} {CpuFilterValue:F1}%");
+
+            if (MemFilterEnabled)
+                parts.Add($"Memory {MemFilterOp} {MemFilterValue:F1} MB");
+
+            HasActiveFilter = parts.Count > 0;
+            ActiveFilterSummary = parts.Count > 0 ? $"Active filters: {string.Join("  |  ", parts)}" : string.Empty;
+        }
+
+        // Filter property change handlers
+        partial void OnFilterRunningChanged(bool value) => RefreshFilter();
+        partial void OnFilterStoppedChanged(bool value) => RefreshFilter();
+        partial void OnFilterOtherChanged(bool value) => RefreshFilter();
+        partial void OnCpuFilterEnabledChanged(bool value) => RefreshFilter();
+        partial void OnCpuFilterOpChanged(string value) => RefreshFilter();
+        partial void OnCpuFilterValueChanged(double value) => RefreshFilter();
+        partial void OnMemFilterEnabledChanged(bool value) => RefreshFilter();
+        partial void OnMemFilterOpChanged(string value) => RefreshFilter();
+        partial void OnMemFilterValueChanged(double value) => RefreshFilter();
+
+        // --- Sorting (called from code-behind) ---
+
+        [RelayCommand]
+        private void ToggleSort(string column)
+        {
+            if (_sortColumn == column)
+            {
+                _sortDir = _sortDir switch
+                {
+                    SortDirection.None => SortDirection.Ascending,
+                    SortDirection.Ascending => SortDirection.Descending,
+                    SortDirection.Descending => SortDirection.None,
+                    _ => SortDirection.None
+                };
+            }
+            else
+            {
+                _sortColumn = column;
+                _sortDir = SortDirection.Ascending;
+            }
+
+            ApplySorting();
+            UpdateHeaderTexts();
+        }
+
+        private void ApplySorting()
+        {
+            if (ServicesView is not ListCollectionView view) return;
+
+            view.CustomSort = _sortDir == SortDirection.None
+                ? null
+                : new ServiceComparer(_sortColumn, _sortDir == SortDirection.Ascending);
+        }
+
+        private void UpdateHeaderTexts()
+        {
+            HeaderChart = BuildHeader("Chart", "ShowInChart");
+            HeaderDisplayName = BuildHeader("Display Name", "DisplayName");
+            HeaderServiceName = BuildHeader("Service Name", "ServiceName");
+            HeaderStatus = BuildHeader("Status", "Status");
+            HeaderCpu = BuildHeader("CPU (%)", "CpuUsage");
+            HeaderMemory = BuildHeader("Memory (MB)", "MemoryMB");
+        }
+
+        private string BuildHeader(string label, string column)
+        {
+            var arrow = _sortColumn == column ? _sortDir switch
+            {
+                SortDirection.Ascending => " ▲",
+                SortDirection.Descending => " ▼",
+                _ => ""
+            } : "";
+
+            return $"{label}{arrow}";
         }
 
         public async Task OnNavigatedToAsync()
@@ -248,6 +473,8 @@ namespace WinServiceController.ViewModels.Pages
                     Services.Add(info);
                 }
 
+                RebuildCollectionView();
+                ApplySorting();
                 SyncChartVisibility();
             }
             catch
@@ -596,5 +823,26 @@ namespace WinServiceController.ViewModels.Pages
             ObservableCollection<ObservableValue> MemValues,
             LineSeries<ObservableValue> CpuLine,
             LineSeries<ObservableValue> MemLine);
+    }
+
+    internal sealed class ServiceComparer(string column, bool ascending) : System.Collections.IComparer
+    {
+        public int Compare(object? x, object? y)
+        {
+            if (x is not ServiceInfo a || y is not ServiceInfo b) return 0;
+
+            int result = column switch
+            {
+                "ShowInChart" => a.ShowInChart.CompareTo(b.ShowInChart),
+                "DisplayName" => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase),
+                "ServiceName" => string.Compare(a.ServiceName, b.ServiceName, StringComparison.OrdinalIgnoreCase),
+                "Status" => string.Compare(a.StatusText, b.StatusText, StringComparison.OrdinalIgnoreCase),
+                "CpuUsage" => a.CpuUsage.CompareTo(b.CpuUsage),
+                "MemoryMB" => a.MemoryMB.CompareTo(b.MemoryMB),
+                _ => 0
+            };
+
+            return ascending ? result : -result;
+        }
     }
 }
